@@ -146,6 +146,11 @@ class AppTheme {
           fontSize: 14,
           color: Color(0xFF6B7280),
         ),
+        bodySmall: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 12,
+          color: Color(0xFF9CA3AF),
+        ),
       ),
 
       scaffoldBackgroundColor: const Color(0xFFF5F7FF),
@@ -245,6 +250,11 @@ class AppTheme {
           fontFamily: _fontFamily,
           fontSize: 14,
           color: Color(0xFF9CA3AF),
+        ),
+        bodySmall: TextStyle(
+          fontFamily: _fontFamily,
+          fontSize: 12,
+          color: Color(0xFF6B7280),
         ),
       ),
 

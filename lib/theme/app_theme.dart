@@ -40,12 +40,10 @@ class AppTheme {
   // ─── Palet warna ─────────────────────────────────────────────────────────
   static const Color _primaryColor = Color(0xFF4F46E5); // Indigo
   static const Color _secondaryColor = Color(0xFF06B6D4); // Cyan
-  static const Color _correctColor = Color(0xFF22C55E); // Hijau
-  static const Color _wrongColor = Color(0xFFEF4444); // Merah
 
-  // Warna yang diekspos agar bisa dipakai widget lain
-  static Color get correctColor => _correctColor;
-  static Color get wrongColor => _wrongColor;
+  // Warna publik — bisa dipakai widget lain sebagai const
+  static const Color correctColor = Color(0xFF22C55E); // Hijau
+  static const Color wrongColor = Color(0xFFEF4444); // Merah
 
   // ─── Light Theme ─────────────────────────────────────────────────────────
   static ThemeData get lightTheme {

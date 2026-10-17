@@ -1,118 +1,129 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+
 import '../models/question.dart';
 import '../data/quiz_data.dart';
 
 /// Enum untuk merepresentasikan status/fase kuis saat ini.
 enum QuizStatus {
-  initial,    // Belum mulai, menunggu input nama pengguna
+  initial, // Belum mulai, menunggu input nama pengguna
   inProgress, // Kuis sedang berjalan
-  finished,   // Kuis selesai, tampilkan hasil
+  finished, // Kuis selesai, tampilkan hasil
 }
 
-/// [QuizProvider] mengelola seluruh state kuis menggunakan ChangeNotifier
-/// sehingga bisa dikonsumsi oleh widget melalui Provider/Consumer.
+/// [QuizProvider] mengelola seluruh state kuis menggunakan ChangeNotifier.
 ///
-/// State yang dikelola:
-///   - [username]             : nama pengguna yang diinput di halaman awal
-///   - [currentQuestionIndex] : indeks soal yang sedang ditampilkan
-///   - [userAnswers]          : map <questionId, answerIndex> jawaban pengguna
-///   - [score]                : skor akhir (dihitung saat kuis selesai)
-///   - [status]               : fase kuis (initial / inProgress / finished)
-///   - [remainingSeconds]     : countdown timer per soal (default 15 detik)
+/// Perubahan di Tahap 3:
+///   - [answerQuestion] tidak lagi auto-navigasi ke soal berikutnya.
+///     UI (QuizScreen) yang mengontrol kapan lanjut via tombol "Selanjutnya".
+///   - Getter [canGoNext] : true jika soal sudah dijawab (tombol aktif).
+///   - Getter [liveScore] : hitung skor jawaban benar sampai soal saat ini.
+///   - Timer tetap berjalan; saat habis soal otomatis ditandai skip,
+///     lalu [canGoNext] = true agar tombol aktif.
 class QuizProvider extends ChangeNotifier {
-  // ─── Konstanta ────────────────────────────────────────────────────────────
-  static const int _secondsPerQuestion = 15;
+  // ─── Konstanta ─────────────────────────────────────────────────────────────
+  static const int secondsPerQuestion = 15;
 
-  // ─── State ────────────────────────────────────────────────────────────────
+  // ─── State ─────────────────────────────────────────────────────────────────
   String _username = '';
   int _currentQuestionIndex = 0;
   final Map<int, int> _userAnswers = {}; // {questionId: answerIndex}
   int _score = 0;
   QuizStatus _status = QuizStatus.initial;
-  int _remainingSeconds = _secondsPerQuestion;
+  int _remainingSeconds = secondsPerQuestion;
   Timer? _timer;
 
-  // Daftar soal diambil dari dummy data; bisa diganti dengan fetch API nanti.
+  // Tandai bahwa timer soal ini sudah habis (soal di-skip otomatis)
+  bool _timerExpired = false;
+
   final List<Question> _questions = quizQuestions;
 
-  // ─── Getters (read-only untuk UI) ────────────────────────────────────────
+  // ─── Getters ───────────────────────────────────────────────────────────────
   String get username => _username;
   int get currentQuestionIndex => _currentQuestionIndex;
   Map<int, int> get userAnswers => Map.unmodifiable(_userAnswers);
   int get score => _score;
   QuizStatus get status => _status;
   int get remainingSeconds => _remainingSeconds;
+  bool get timerExpired => _timerExpired;
   List<Question> get questions => List.unmodifiable(_questions);
   int get totalQuestions => _questions.length;
 
-  /// Soal yang sedang aktif ditampilkan.
   Question get currentQuestion => _questions[_currentQuestionIndex];
 
-  /// Apakah soal saat ini sudah dijawab.
   bool get isCurrentAnswered =>
-      _userAnswers.containsKey(currentQuestion.id);
+      _userAnswers.containsKey(currentQuestion.id) || _timerExpired;
 
-  /// Apakah ini soal terakhir.
-  bool get isLastQuestion =>
-      _currentQuestionIndex == _questions.length - 1;
+  bool get isLastQuestion => _currentQuestionIndex == _questions.length - 1;
 
-  // ─── Actions ─────────────────────────────────────────────────────────────
+  /// Tombol "Selanjutnya"/"Selesai" aktif hanya jika soal sudah dijawab
+  /// atau timer habis.
+  bool get canGoNext => isCurrentAnswered;
 
-  /// Simpan nama pengguna dan mulai kuis.
+  /// Skor live: jumlah jawaban benar dari soal yang sudah dijawab sejauh ini.
+  int get liveScore {
+    int correct = 0;
+    for (final q in _questions) {
+      final ans = _userAnswers[q.id];
+      if (ans != null && ans == q.correctAnswerIndex) correct++;
+    }
+    return correct;
+  }
+
+  // ─── Actions ───────────────────────────────────────────────────────────────
+
+  /// Mulai kuis baru dengan nama pengguna.
   void startQuiz(String name) {
     _username = name.trim();
     _currentQuestionIndex = 0;
     _userAnswers.clear();
     _score = 0;
+    _timerExpired = false;
     _status = QuizStatus.inProgress;
     _startTimer();
     notifyListeners();
   }
 
-  /// Simpan jawaban pengguna untuk soal saat ini, lalu maju ke soal berikutnya
-  /// atau selesaikan kuis jika sudah di soal terakhir.
+  /// Simpan jawaban pengguna.
+  /// Tidak lagi auto-navigasi — UI yang memutuskan kapan lanjut.
   void answerQuestion(int answerIndex) {
-    if (isCurrentAnswered) return; // Cegah double-answer
+    if (isCurrentAnswered) return; // cegah double-answer
 
     _userAnswers[currentQuestion.id] = answerIndex;
-    _stopTimer();
+    _stopTimer(); // hentikan timer begitu dijawab
     notifyListeners();
-
-    // Otomatis lanjut setelah 800ms agar user sempat lihat pilihan terpilih
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (isLastQuestion) {
-        _finishQuiz();
-      } else {
-        nextQuestion();
-      }
-    });
   }
 
-  /// Paksa lanjut ke soal berikutnya (dipanggil saat timer habis).
-  void nextQuestion() {
-    if (_currentQuestionIndex < _questions.length - 1) {
-      _currentQuestionIndex++;
-      _resetTimer();
-      notifyListeners();
-    } else {
+  /// Lanjut ke soal berikutnya (dipanggil dari tombol "Selanjutnya").
+  /// Hanya bisa dilakukan jika [canGoNext] == true.
+  void goToNextQuestion() {
+    if (!canGoNext) return;
+
+    if (isLastQuestion) {
       _finishQuiz();
+    } else {
+      _currentQuestionIndex++;
+      _timerExpired = false;
+      _startTimer();
+      notifyListeners();
     }
   }
 
-  /// Reset kuis ke keadaan awal (kembali ke halaman welcome).
+  /// Reset kuis ke keadaan awal.
   void resetQuiz() {
     _stopTimer();
     _username = '';
     _currentQuestionIndex = 0;
     _userAnswers.clear();
     _score = 0;
-    _remainingSeconds = _secondsPerQuestion;
+    _remainingSeconds = secondsPerQuestion;
+    _timerExpired = false;
     _status = QuizStatus.initial;
     notifyListeners();
   }
 
-  // ─── Private helpers ─────────────────────────────────────────────────────
+  // ─── Private helpers ───────────────────────────────────────────────────────
 
   void _finishQuiz() {
     _stopTimer();
@@ -123,25 +134,24 @@ class QuizProvider extends ChangeNotifier {
 
   void _calculateScore() {
     int correct = 0;
-    for (final question in _questions) {
-      final userAnswer = _userAnswers[question.id];
-      if (userAnswer != null && userAnswer == question.correctAnswerIndex) {
-        correct++;
-      }
+    for (final q in _questions) {
+      final ans = _userAnswers[q.id];
+      if (ans != null && ans == q.correctAnswerIndex) correct++;
     }
     _score = correct;
   }
 
   void _startTimer() {
-    _remainingSeconds = _secondsPerQuestion;
+    _remainingSeconds = secondsPerQuestion;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_remainingSeconds > 0) {
         _remainingSeconds--;
         notifyListeners();
       } else {
-        // Waktu habis → tandai soal ini tidak terjawab, lanjut
+        // Waktu habis → soal ini di-skip, aktifkan tombol next
         _stopTimer();
-        nextQuestion();
+        _timerExpired = true;
+        notifyListeners();
       }
     });
   }
@@ -149,11 +159,6 @@ class QuizProvider extends ChangeNotifier {
   void _stopTimer() {
     _timer?.cancel();
     _timer = null;
-  }
-
-  void _resetTimer() {
-    _stopTimer();
-    _startTimer();
   }
 
   @override

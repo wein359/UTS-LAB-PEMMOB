@@ -5,6 +5,7 @@ import '../providers/quiz_provider.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/quiz_illustration.dart';
+import '../widgets/theme_toggle.dart';
 import 'quiz_screen.dart';
 
 /// [WelcomeScreen] — Halaman pertama yang dilihat pengguna.
@@ -113,129 +114,145 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           ),
         ),
         child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // ── Breakpoint responsif ──────────────────────────────────
-              final screenH = constraints.maxHeight;
-              final screenW = constraints.maxWidth;
+          child: Stack(
+            children: [
+              // ── Konten utama ────────────────────────────────────────────
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  // ── Breakpoint responsif ──────────────────────────────────
+                  final screenH = constraints.maxHeight;
+                  final screenW = constraints.maxWidth;
 
-              // Ukuran ilustrasi: 32% tinggi layar, min 140, max 260
-              final illustrationSize = (screenH * 0.32).clamp(140.0, 260.0);
+                  // Ukuran ilustrasi: 32% tinggi layar, min 140, max 260
+                  final illustrationSize = (screenH * 0.32).clamp(140.0, 260.0);
 
-              // Spacing vertikal proporsional
-              final spacingLg = (screenH * 0.035).clamp(12.0, 32.0);
-              final spacingSm = (screenH * 0.018).clamp(8.0, 16.0);
+                  // Spacing vertikal proporsional
+                  final spacingLg = (screenH * 0.035).clamp(12.0, 32.0);
+                  final spacingSm = (screenH * 0.018).clamp(8.0, 16.0);
 
-              // Padding horizontal: lebih sempit di tablet landscape
-              final hPad = screenW > 600
-                  ? screenW * 0.18
-                  : (screenW * 0.06).clamp(20.0, 32.0);
+                  // Padding horizontal: lebih sempit di tablet landscape
+                  final hPad = screenW > 600
+                      ? screenW * 0.18
+                      : (screenW * 0.06).clamp(20.0, 32.0);
 
-              return FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: hPad,
-                      vertical: spacingLg,
-                    ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // ── Ilustrasi ──────────────────────────────────
-                          Center(
-                            child: QuizIllustration(size: illustrationSize),
-                          ),
-                          SizedBox(height: spacingLg),
-
-                          // ── Judul ──────────────────────────────────────
-                          Text(
-                            'Kuis Pemrograman\nMobile',
-                            style: theme.textTheme.headlineLarge?.copyWith(
-                              fontSize: screenH < 600 ? 22 : null,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: spacingSm),
-
-                          // ── Subtitle / info soal ───────────────────────
-                          Row(
+                  return FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: hPad,
+                          vertical: spacingLg,
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              _InfoChip(
-                                icon: Icons.quiz_outlined,
-                                label: '10 Soal',
-                                color: theme.colorScheme.primary,
+                              // ── Ilustrasi ──────────────────────────────────
+                              Center(
+                                child: QuizIllustration(size: illustrationSize),
                               ),
-                              SizedBox(width: spacingSm),
-                              _InfoChip(
-                                icon: Icons.timer_outlined,
-                                label: '15 Detik/Soal',
-                                color: theme.colorScheme.secondary,
+                              SizedBox(height: spacingLg),
+
+                              // ── Judul ──────────────────────────────────────
+                              Text(
+                                'Kuis Pemrograman\nMobile',
+                                style: theme.textTheme.headlineLarge?.copyWith(
+                                  fontSize: screenH < 600 ? 22 : null,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              SizedBox(height: spacingSm),
+
+                              // ── Subtitle / info soal ───────────────────────
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _InfoChip(
+                                    icon: Icons.quiz_outlined,
+                                    label: '10 Soal',
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                  SizedBox(width: spacingSm),
+                                  _InfoChip(
+                                    icon: Icons.timer_outlined,
+                                    label: '15 Detik/Soal',
+                                    color: theme.colorScheme.secondary,
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: spacingLg * 1.2),
+
+                              // ── Label input ────────────────────────────────
+                              Text(
+                                'Siapa namamu?',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontSize: screenH < 600 ? 15 : null,
+                                ),
+                              ),
+                              SizedBox(height: spacingSm),
+
+                              // ── CustomTextField ────────────────────────────
+                              CustomTextField(
+                                controller: _nameController,
+                                hintText: 'Contoh: Budi Santoso',
+                                prefixIcon: Icons.person_outline_rounded,
+                                textCapitalization: TextCapitalization.words,
+                                maxLength: 30,
+                                autofocus: false,
+                                onFieldSubmitted: (_) => _startQuiz(),
+                                // Validasi: tidak boleh kosong, min 2 karakter
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Nama tidak boleh kosong';
+                                  }
+                                  if (value.trim().length < 2) {
+                                    return 'Nama minimal 2 karakter';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              SizedBox(height: spacingLg),
+
+                              // ── CustomButton ───────────────────────────────
+                              CustomButton(
+                                label: 'Mulai Kuis',
+                                icon: Icons.play_arrow_rounded,
+                                onPressed: _startQuiz,
+                                height: screenH < 600 ? 46 : 54,
+                              ),
+                              SizedBox(height: spacingSm * 1.5),
+
+                              // ── Disclaimer kecil ───────────────────────────
+                              Text(
+                                'Pastikan nama sudah benar sebelum memulai.',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontSize: 12,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
-                          SizedBox(height: spacingLg * 1.2),
-
-                          // ── Label input ────────────────────────────────
-                          Text(
-                            'Siapa namamu?',
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontSize: screenH < 600 ? 15 : null,
-                            ),
-                          ),
-                          SizedBox(height: spacingSm),
-
-                          // ── CustomTextField ────────────────────────────
-                          CustomTextField(
-                            controller: _nameController,
-                            hintText: 'Contoh: Budi Santoso',
-                            prefixIcon: Icons.person_outline_rounded,
-                            textCapitalization: TextCapitalization.words,
-                            maxLength: 30,
-                            autofocus: false,
-                            onFieldSubmitted: (_) => _startQuiz(),
-                            // Validasi: tidak boleh kosong, min 2 karakter
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Nama tidak boleh kosong';
-                              }
-                              if (value.trim().length < 2) {
-                                return 'Nama minimal 2 karakter';
-                              }
-                              return null;
-                            },
-                          ),
-                          SizedBox(height: spacingLg),
-
-                          // ── CustomButton ───────────────────────────────
-                          CustomButton(
-                            label: 'Mulai Kuis',
-                            icon: Icons.play_arrow_rounded,
-                            onPressed: _startQuiz,
-                            height: screenH < 600 ? 46 : 54,
-                          ),
-                          SizedBox(height: spacingSm * 1.5),
-
-                          // ── Disclaimer kecil ───────────────────────────
-                          Text(
-                            'Pastikan nama sudah benar sebelum memulai.',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontSize: 12,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                  );
+                },
+              ),
+
+              // ── ThemeToggle di pojok kanan atas ────────────────────────
+              Positioned(
+                top: 4,
+                right: 4,
+                child: ThemeToggle(
+                  iconColor: isDark
+                      ? Colors.white70
+                      : Theme.of(context).colorScheme.primary,
                 ),
-              );
-            },
+              ),
+            ],
           ),
         ),
       ),

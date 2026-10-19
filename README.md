@@ -113,7 +113,7 @@ detail.
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/[ USERNAME_GITHUB_KAMU ]/uts_lab.git
+git clone https://github.com/wein359/UTS-LAB-PEMMOB.git)
 
 # 2. Masuk ke direktori proyek
 cd uts_lab

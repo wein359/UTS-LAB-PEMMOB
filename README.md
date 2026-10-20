@@ -1,7 +1,7 @@
 # 🧠 QuizApp — Aplikasi Kuis Pilihan Ganda
 
 <p align="center">
-  <img src="screenshots/logo.png" alt="App Logo" width="120"/>
+  <img src="screenshots/logo.jpeg" alt="App Logo" width="120"/>
 </p>
 
 ---
@@ -81,11 +81,11 @@ detail.
 
 | Welcome Screen | Quiz Screen | Result Screen |
 |:-:|:-:|:-:|
-| ![Welcome](screenshots/welcome_screen.png) | ![Quiz](screenshots/quiz_screen.png) | ![Result](screenshots/result_screen.png) |
+| ![Welcome](screenshots/welcome_screen.jpeg) | ![Quiz](screenshots/quiz_screen.jpeg) | ![Result](screenshots/result_screen.jpeg) |
 
 | Dark Mode | Landscape Mode |
 |:-:|:-:|
-| ![Dark](screenshots/dark_mode.png) | ![Landscape](screenshots/landscape.png) |
+| ![Dark](screenshots/dark_mode.jpeg) | ![Landscape](screenshots/landscape.jpeg) |
 
 ---
 
@@ -93,7 +93,7 @@ detail.
 
 | Jenis | Link |
 |-------|------|
-| 🎨 Mockup / Prototype | [ ISI LINK FIGMA / CANVA MOCKUP KAMU ] |
+| 🎨 Mockup / Prototype | [ - ] |
 | 🎥 Video Presentasi | [ ISI LINK GOOGLE DRIVE VIDEO KAMU ] |
 
 ---

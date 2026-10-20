@@ -71,14 +71,6 @@ detail.
 
 ## 📸 Screenshot Aplikasi
 
-> [ TAMBAHKAN SCREENSHOT TIAP HALAMAN DI SINI ]
-> Contoh cara menambahkan:
-> ```
-> ![Welcome Screen](screenshots/welcome_screen.png)
-> ![Quiz Screen](screenshots/quiz_screen.png)
-> ![Result Screen](screenshots/result_screen.png)
-> ```
-
 | Welcome Screen | Quiz Screen | Result Screen |
 |:-:|:-:|:-:|
 | ![Welcome](screenshots/welcome_screen.jpeg) | ![Quiz](screenshots/quiz_screen.jpeg) | ![Result](screenshots/result_screen.jpeg) |

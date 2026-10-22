@@ -85,8 +85,8 @@ detail.
 
 | Jenis | Link |
 |-------|------|
-| 🎨 Mockup / Prototype | [ - ] |
-| 🎥 Video Presentasi | [ ISI LINK GOOGLE DRIVE VIDEO KAMU ] |
+| 🎨 Mockup / Prototype | [ https://canva.link/mq2feqompnwbygi ] |
+| 🎥 Video Presentasi | [ [https://drive.google.com/file/d/1TUZu2EADz03yravDxa_fVLFPOpNt4UGK/view?usp=sharing ] |
 
 ---
 
